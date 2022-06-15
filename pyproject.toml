@@ -6,6 +6,11 @@ authors = ["ograsdijk <o.grasdijk@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
+numpy = "^1.20"
+sympy = "^1.1"
+centrex_TlF_hamiltonian = "^0.1"
+centrex_TlF_couplings = "^0.1"
+julia = "^0.5.7"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
@@ -13,3 +18,9 @@ pytest = "^5.2"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[[tool.mypy.overrides]]
+module = [
+    "julia"
+]
+ignore_missing_imports = true

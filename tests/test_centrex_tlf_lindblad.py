@@ -1,4 +1,4 @@
-from centrex_tlf_lindblad import __version__
+from centrex_TlF_lindblad import __version__
 
 
 def test_version():
