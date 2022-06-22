@@ -12,6 +12,7 @@ julia_funcs = [
     "phase_modulation",
     "square_wave",
     "multipass_2d_intensity",
+    "sawtooth_wave",
 ]
 
 type_conv = {
@@ -339,7 +340,9 @@ class odeParameters:
                 return julia.Main.eval("map(_tmp_func, tmp_t)")
             else:
                 # evaluate the specified parameter expression in python
-                func = smp.lambdify(smp.Symbol("t"), expression, modules=["numpy", "scipy"])
+                func = smp.lambdify(
+                    smp.Symbol("t"), expression, modules=["numpy", "scipy"]
+                )
                 res = func(t)
                 if np.shape(res) == ():
                     return np.ones(len(t)) * res

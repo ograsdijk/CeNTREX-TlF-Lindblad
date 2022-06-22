@@ -60,6 +60,7 @@ def generate_OBE_system(
     H_func_X: Optional[Callable] = None,
     H_func_B: Optional[Callable] = None,
     verbose: bool = False,
+    normalize_pol: bool = False,
 ) -> OBESystem:
     """Convenience function for generating the symbolic OBE system of equations
     and Julia code.
@@ -132,6 +133,7 @@ def generate_OBE_system(
                     V_ref_int,
                     pol_vecs=transition.polarizations,
                     pol_main=transition.polarizations[0],
+                    normalize_pol=normalize_pol,
                 )
             )
         else:
@@ -252,6 +254,7 @@ def setup_OBE_system_julia(
     H_func_B: Optional[Callable] = None,
     verbose: bool = False,
     init_julia: bool = True,
+    normalize_pol: bool = False,
 ):
     """Convenience function for generating the OBE system and initializing it in
     Julia
@@ -302,6 +305,7 @@ def setup_OBE_system_julia(
         H_func_X=H_func_X,
         H_func_B=H_func_B,
         verbose=verbose,
+        normalize_pol=normalize_pol,
     )
     obe_system.full_output = full_output
     if verbose:

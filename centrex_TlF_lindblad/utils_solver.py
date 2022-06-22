@@ -27,6 +27,7 @@ __all__ = [
     "get_results_parameter_scan",
 ]
 
+
 def setup_initial_condition_scan(
     values: Union[List[Number], npt.NDArray[Union[np.int_, np.float_, np.complex_]]]
 ) -> None:
@@ -404,7 +405,13 @@ def solve_problem_parameter_scan(
         )
 
 
-def get_results() -> Tuple[npt.NDArray[np.float_], npt.NDArray[np.complex_]]:
+@dataclass
+class OBEResult:
+    t: npt.NDArray[np.float_]
+    y: npt.NDArray[np.complex_]
+
+
+def get_results() -> OBEResult:
     """Retrieve the results of a single trajectory OBE simulation solution.
 
     Returns:
@@ -413,7 +420,7 @@ def get_results() -> Tuple[npt.NDArray[np.float_], npt.NDArray[np.complex_]]:
     """
     results = np.real(np.einsum("jji->ji", np.array(Main.eval("sol[:]")).T))
     t = Main.eval("sol.t")
-    return t, results
+    return OBEResult(t, results)
 
 
 @overload
@@ -474,10 +481,10 @@ def do_simulation_single(
     ρ: npt.NDArray[np.complex_],
     terminate_expression: Optional[str] = None,
     dt: float = 1e-8,
-    saveat: Union[List[float], npt.NDArray[np.float_]] = None,
+    saveat: Optional[Union[List[float], npt.NDArray[np.float_]]] = None,
     dtmin: Optional[int] = None,
     maxiters: int = 100_000,
-):
+) -> OBEResult:
     """Perform a single trajectory solve of the OBE equations for a specified
     TlF system.
 

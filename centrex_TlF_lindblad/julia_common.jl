@@ -31,6 +31,14 @@ using Distributed
     end
 
     """
+        sawtooth_wave(t::Float64, ω::Float64, phase::Float64)::Float64
+
+    generate a sawtooth wave from 0 to 1 at frequency ω [2π Hz; rad/s] and phase offset phase [rad]
+    """
+    function sawtooth_wave(t::Float64, ω::Float64, phase::Float64)::Float64
+        0.5.*(1 .+ sawtoothwave(ω.*t .+ phase))
+    end
+    """
         multipass_2d_intensity(x::Float64, y::Float64, amplitudes::Vector{Float64}, xlocs::Vector{Float64}, ylocs::Vector{Float64}, σx::Float64, σy::Float64)::Float64
 
     generate a multipass with 2D gaussian intensity profiles for each pass
