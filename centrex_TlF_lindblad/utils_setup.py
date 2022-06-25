@@ -195,7 +195,7 @@ def generate_OBE_system(
             indices, H_symbolic = decay.add_levels_symbolic_hamiltonian(
                 H_symbolic, _decay_channels, QN, excited_states
             )
-            QN = decay.add_states_QN(_decay_channels, QN_compact, indices)
+            QN = decay.add_states_QN(_decay_channels, QN, indices)
             C_array = decay.add_decays_C_arrays(
                 _decay_channels, indices, QN, C_array, system_parameters.Γ
             )
