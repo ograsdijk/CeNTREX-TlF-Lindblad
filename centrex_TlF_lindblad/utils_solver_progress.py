@@ -18,10 +18,12 @@ def solve_problem_parameter_scan_progress(
     trajectories: Optional[int] = None,
     output_func: Optional[str] = None,
     saveat: Optional[Union[List[float], npt.NDArray[np.float_]]] = None,
+    save_idxs: Optional[List[float]] = None,
 ):
     _trajectories = "size(params)[1]" if trajectories is None else trajectories
     _callback = "nothing" if callback is None else callback
     _saveat = "[]" if saveat is None else str(saveat)
+    _save_idxs = "nothing" if save_idxs is None else str(save_idxs)
 
     if output_func is None:
         Main.eval(
@@ -77,7 +79,8 @@ def solve_problem_parameter_scan_progress(
                             abstol = {abstol}, reltol = {reltol},
                             callback = {_callback},
                             save_everystep = {str(save_everystep).lower()},
-                            saveat = {_saveat})
+                            saveat = {_saveat},
+                            save_idxs = {_save_idxs})
             end
     end
     """
