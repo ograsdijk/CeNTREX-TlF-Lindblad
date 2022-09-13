@@ -1,4 +1,4 @@
-from typing import Any, Union, List
+from typing import Any, Optional, Union, List
 from dataclasses import dataclass
 import sympy as smp
 import numpy.typing as npt
@@ -48,5 +48,9 @@ def generate_density_matrix_symbolic(
 class SystemParameters:
     nprocs: int
     Γ: float
-    X: Union[states.QuantumSelector, List[states.QuantumSelector], npt.NDArray[Any]]
-    B: Union[states.QuantumSelector, List[states.QuantumSelector], npt.NDArray[Any]]
+    X: Optional[
+        Union[states.QuantumSelector, List[states.QuantumSelector], npt.NDArray[Any]]
+    ] = None
+    B: Optional[
+        Union[states.QuantumSelector, List[states.QuantumSelector], npt.NDArray[Any]]
+    ] = None
