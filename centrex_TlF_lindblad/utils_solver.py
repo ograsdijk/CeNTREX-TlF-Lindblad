@@ -466,11 +466,13 @@ def get_results_parameter_scan(
         _scan_values = scan_values
         if isinstance(_scan_values[0], (list, np.ndarray)):
             # this will always give a valid length for len(val) but mypy throws an error
-            results = results.reshape([len(val) for val in _scan_values])  # type: ignore
+            results = results.reshape(
+                [len(val) for val in _scan_values] # type: ignore
+            )  # type: ignore
             X, Y = np.meshgrid(*_scan_values)
             return X, Y, results.T
         else:
-            return scan_values, results
+            return scan_values, results  # type: ignore
     else:
         return results
 

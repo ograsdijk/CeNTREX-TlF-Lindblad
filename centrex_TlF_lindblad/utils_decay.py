@@ -41,7 +41,7 @@ def add_level_symbolic_hamiltonian(
 
 
 def add_states_QN(
-    decay_channels: Sequence[DecayChannel], QN: List[states.State], indices: List[int],
+    decay_channels: Sequence[DecayChannel], QN: List[states.State], indices: List[int]
 ) -> List[states.State]:
     states = copy.copy(QN)
     for idx, decay_channel in zip(indices, decay_channels):
