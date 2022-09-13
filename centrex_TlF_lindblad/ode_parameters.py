@@ -13,6 +13,7 @@ julia_funcs = [
     "square_wave",
     "multipass_2d_intensity",
     "sawtooth_wave",
+    "variable_on_off",
 ]
 
 type_conv = {

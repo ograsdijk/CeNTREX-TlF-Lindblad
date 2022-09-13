@@ -36,8 +36,17 @@ using Distributed
     generate a sawtooth wave from 0 to 1 at frequency ω [2π Hz; rad/s] and phase offset phase [rad]
     """
     function sawtooth_wave(t::Float64, ω::Float64, phase::Float64)::Float64
-        0.5.*(1 .+ sawtoothwave(ω.*t .+ phase))
+        0.5.*(1 .+ sawtoothwave(ω.*t .+ phase - π))
     end
+
+    """
+
+    """
+    function variable_on_off(t::Float64, ton::Float64, toff::Float64, phase::Float64)::Float64
+        ω = 2π*1.0/(ton+toff)
+        sawtooth_wave(t, ω, phase) <= ton/(ton+toff) ? 1. : 0.
+    end
+
     """
         multipass_2d_intensity(x::Float64, y::Float64, amplitudes::Vector{Float64}, xlocs::Vector{Float64}, ylocs::Vector{Float64}, σx::Float64, σy::Float64)::Float64
 
