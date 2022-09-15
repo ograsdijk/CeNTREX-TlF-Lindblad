@@ -6,7 +6,7 @@ from julia import Main
 __all__ = ["initialize_julia", "generate_ode_fun_julia"]
 
 
-def initialize_julia(nprocs: int):
+def initialize_julia(nprocs: int, verbose: bool = True):
     """
     Function to initialize Julia over nprocs processes.
     Creates nprocs processes and loads the necessary Julia
@@ -47,7 +47,8 @@ def initialize_julia(nprocs: int):
     path = Path(__file__).parent / "julia_common.jl"
     Main.eval(f'include(raw"{path}")')
 
-    print(f"Initialized Julia with {nprocs} processes")
+    if verbose:
+        print(f"Initialized Julia with {nprocs} processes")
 
 
 def generate_ode_fun_julia(preamble: str, code_lines: List[str]) -> str:
