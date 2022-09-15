@@ -341,6 +341,20 @@ def generate_OBE_system_transitions(
     if H_reduced.QN_basis is None:
         raise ValueError("H_reduced.QN_basis is None")
 
+    if qn_compact is None:
+        J_transitions_ground = []
+        for transition in transitions:
+            J_transitions_ground.append(transition.J_ground)
+        J_compact = [
+            Ji
+            for Ji in np.unique([s.largest.J for s in H_reduced.X_states_basis])
+            if Ji not in J_transitions_ground
+        ]
+        qn_compact = [
+            states.QuantumSelector(J=Ji, electronic=states.ElectronicState.X)
+            for Ji in J_compact
+        ]
+
     ground_states = H_reduced.X_states
     excited_states = H_reduced.B_states
     QN = H_reduced.QN
@@ -665,7 +679,7 @@ def setup_OBE_system_julia_transitions(
                 "setup_OBE_system_julia: 2/3 -> Initializing Julia on "
                 f"{system_parameters.nprocs} cores"
             )
-        initialize_julia(nprocs=system_parameters.nprocs)
+        initialize_julia(nprocs=system_parameters.nprocs, verbose=verbose)
 
     if verbose:
         logger.info(
