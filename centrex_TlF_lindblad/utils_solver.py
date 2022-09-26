@@ -15,6 +15,7 @@ __all__ = [
     "setup_initial_condition_scan",
     "setup_parameter_scan_1D",
     "setup_ratio_calculation",
+    "setup_state_integral_calculation_state_idxs",
     "setup_state_integral_calculation",
     "setup_parameter_scan_ND",
     "setup_discrete_callback_terminate",
@@ -185,6 +186,54 @@ def setup_ratio_calculation(
     end"""
     )
     return output_func
+
+
+def setup_state_integral_calculation_state_idxs(
+    output_func: Optional[str] = None,
+    nphotons: bool = False,
+    Γ: Optional[float] = None,
+) -> str:
+    """Setup an integration output_function for an EnsembleProblem.
+    Uses trapezoidal integration to integrate the states.
+
+    Args:
+        states (list): list of state indices to integrate
+        nphotons (bool, optional): flag to calculate the number of photons,
+                                    e.g. normalize with Γ
+        Γ (float, optional): decay rate in 2π Hz (rad/s), not necessary if already
+                                loaded into Julia globals
+    """
+    if output_func is None:
+        _output_func = "output_func"
+    else:
+        _output_func = output_func
+    if nphotons & Main.eval("@isdefined Γ"):
+        Main.eval(
+            f"""
+        @everywhere function {_output_func}(sol,i)
+            return Γ.*trapz(sol.t, [real(sum(sol.u[j])) for j in 1:size(sol)[2]]), false
+        end"""
+        )
+    else:
+        if nphotons:
+            assert (
+                Γ is not None
+            ), "Γ not defined as a global in Julia and not supplied to function"
+            Main.eval(f"@everywhere Γ = {Γ}")
+            Main.eval(
+                f"""
+            @everywhere function {_output_func}(sol,i)
+                return {Γ}.*trapz(sol.t, [real(sum(sol.u[j])) for j in 1:size(sol)[2]]), false
+            end"""
+            )
+        else:
+            Main.eval(
+                f"""
+            @everywhere function {_output_func}(sol,i)
+                return trapz(sol.t, [real(sum(sol.u[j])) for j in 1:size(sol)[2]]), false
+            end"""
+            )
+    return _output_func
 
 
 def setup_state_integral_calculation(
@@ -378,9 +427,11 @@ def solve_problem_parameter_scan(
     ensemble_problem_name: str = "ens_prob",
     trajectories: Optional[int] = None,
     saveat: Optional[Union[List[float], npt.NDArray[np.float_]]] = None,
+    save_idxs: Optional[List[float]] = None,
 ) -> None:
     _trajectores = "size(params)[1]" if trajectories is None else str(trajectories)
     _saveat = "[]" if saveat is None else str(saveat)
+    _save_idxs = "nothing" if save_idxs is None else str(save_idxs)
     if callback is not None:
         Main.eval(
             f"""
@@ -388,8 +439,9 @@ def solve_problem_parameter_scan(
                         abstol = {abstol}, reltol = {reltol}, dt = {dt},
                         trajectories = {_trajectores}, callback = {callback},
                         save_everystep = {str(save_everystep).lower()},
-                        saveat = {_saveat}
-                    )
+                        saveat = {_saveat}, save_idxs = {_save_idxs}
+                    );
+            tmp = 0;
         """
         )
     else:
@@ -399,8 +451,9 @@ def solve_problem_parameter_scan(
                         abstol = {abstol}, reltol = {reltol}, dt = {dt},
                         trajectories = {_trajectores},
                         save_everystep = {str(save_everystep).lower()},
-                        saveat = {_saveat}
-                    )
+                        saveat = {_saveat}, save_idxs = {_save_idxs}
+                    );
+            tmp = 0;
         """
         )
 
