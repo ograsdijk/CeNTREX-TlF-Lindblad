@@ -49,7 +49,7 @@ class OBESystem:
             np.unique(
                 [
                     f"|{s.electronic_state.name}, J = {s.J}, "  # type: ignore
-                    f"P = {'+' if s.P is 1 else '-'}>"  # type: ignore
+                    f"P = {'+' if s.P == 1 else '-'}>"  # type: ignore
                     for s in ground
                 ]
             )
@@ -63,7 +63,7 @@ class OBESystem:
                         f"|{s.electronic_state.name}, J = {s.J}, "  # type: ignore
                         f"F₁ = {smp.S(str(s.F1), rational=True)}, "  # type: ignore
                         f"F = {s.F}, "  # type: ignore
-                        f"P = {'+' if s.P is 1 else '-'}>"  # type: ignore
+                        f"P = {'+' if s.P == 1 else '-'}>"  # type: ignore
                     )
                     for s in excited
                 ]
