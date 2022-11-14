@@ -7,6 +7,7 @@ import numpy as np
 import numpy.typing as npt
 import sympy as smp
 from centrex_TlF_hamiltonian import hamiltonian, states
+from centrex_TlF_hamiltonian.transitions import OpticalTransition, MicrowaveTransition
 from julia import Main
 
 from . import utils_decay as decay
@@ -269,12 +270,10 @@ def generate_OBE_system(
 
 
 def generate_OBE_system_transitions(
-    transitions: Sequence[
-        Union[couplings_TlF.OpticalTransition, couplings_TlF.MicrowaveTransition]
-    ],
+    transitions: Sequence[Union[OpticalTransition, MicrowaveTransition]],
     transition_selectors: Sequence[couplings_TlF.TransitionSelector],
     qn_compact: Optional[
-        Union[states.QuantumSelector, Sequence[states.QuantumSelector]]
+        Union[states.QuantumSelector, Sequence[states.QuantumSelector], bool]
     ] = None,
     decay_channels: Optional[
         Union[Sequence[decay.DecayChannel], decay.DecayChannel]
@@ -341,7 +340,7 @@ def generate_OBE_system_transitions(
     if H_reduced.QN_basis is None:
         raise ValueError("H_reduced.QN_basis is None")
 
-    if qn_compact is None:
+    if qn_compact == True:
         J_transitions_ground = []
         for transition in transitions:
             J_transitions_ground.append(transition.J_ground)
@@ -587,11 +586,11 @@ def setup_OBE_system_julia_transitions(
     system_parameters: SystemParameters,
     ode_parameters: odeParameters,
     transitions: Sequence[
-        Union[couplings_TlF.OpticalTransition, couplings_TlF.MicrowaveTransition]
+        Union[OpticalTransition, MicrowaveTransition]
     ],
     transition_selectors: Sequence[couplings_TlF.TransitionSelector],
     qn_compact: Optional[
-        Union[Sequence[states.QuantumSelector], states.QuantumSelector]
+        Union[Sequence[states.QuantumSelector], states.QuantumSelector, bool]
     ] = None,
     full_output: bool = False,
     decay_channels: Optional[
