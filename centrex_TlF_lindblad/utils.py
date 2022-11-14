@@ -2,7 +2,7 @@ from typing import Any, Optional, Union, List
 from dataclasses import dataclass
 import sympy as smp
 import numpy.typing as npt
-from centrex_TlF_hamiltonian import states
+from centrex_tlf_hamiltonian import states
 
 __all__ = ["generate_density_matrix_symbolic", "SystemParameters"]
 

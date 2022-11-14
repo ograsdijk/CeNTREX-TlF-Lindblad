@@ -1,16 +1,16 @@
 from pathlib import Path
 import pickle
 
-import centrex_TlF_couplings as couplings
-import centrex_TlF_lindblad as lindblad
+import centrex_tlf_couplings as couplings
+import centrex_tlf_lindblad as lindblad
 import numpy as np
 import pytest
 import sympy as smp
-from centrex_TlF_hamiltonian import hamiltonian, states
+from centrex_tlf_hamiltonian import hamiltonian, states
 
 
 def test_generate_preamble():
-    odepars = lindblad.odeParameters(Ωl=1.56e6, δl=0.0,)
+    odepars = lindblad.odeParameters(Ωl=1.56e6, δl=0.0)
     x_select = states.QuantumSelector(J=1)
     b_select = states.QuantumSelector(J=1, F=1, F1=1 / 2, P=1)
     transitions = [

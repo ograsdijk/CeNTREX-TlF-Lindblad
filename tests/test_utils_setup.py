@@ -1,11 +1,11 @@
 import pickle
 from pathlib import Path
 
-import centrex_TlF_couplings as couplings
-import centrex_TlF_lindblad as lindblad
+import centrex_tlf_couplings as couplings
+import centrex_tlf_lindblad as lindblad
 import numpy as np
 import sympy as smp
-from centrex_TlF_hamiltonian import states
+from centrex_tlf_hamiltonian import states
 
 
 def test_generate_OBE_system():

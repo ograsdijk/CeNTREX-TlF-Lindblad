@@ -2,12 +2,12 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Callable, List, Optional, Sequence, Union
 
-import centrex_TlF_couplings as couplings_TlF
+import centrex_tlf_couplings as couplings_TlF
 import numpy as np
 import numpy.typing as npt
 import sympy as smp
-from centrex_TlF_hamiltonian import hamiltonian, states
-from centrex_TlF_hamiltonian.transitions import OpticalTransition, MicrowaveTransition
+from centrex_tlf_hamiltonian import hamiltonian, states
+from centrex_tlf_hamiltonian.transitions import OpticalTransition, MicrowaveTransition
 from julia import Main
 
 from . import utils_decay as decay
@@ -585,9 +585,7 @@ def setup_OBE_system_julia(
 def setup_OBE_system_julia_transitions(
     system_parameters: SystemParameters,
     ode_parameters: odeParameters,
-    transitions: Sequence[
-        Union[OpticalTransition, MicrowaveTransition]
-    ],
+    transitions: Sequence[Union[OpticalTransition, MicrowaveTransition]],
     transition_selectors: Sequence[couplings_TlF.TransitionSelector],
     qn_compact: Optional[
         Union[Sequence[states.QuantumSelector], states.QuantumSelector, bool]

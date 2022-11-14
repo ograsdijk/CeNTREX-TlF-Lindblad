@@ -5,7 +5,7 @@ from typing import Any, Dict, Sequence, List, Tuple, Union
 import numpy as np
 import numpy.typing as npt
 import sympy as smp
-from centrex_TlF_hamiltonian import states
+from centrex_tlf_hamiltonian import states
 
 __all__ = ["DecayChannel"]
 

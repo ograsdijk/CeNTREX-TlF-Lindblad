@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "CeNTREX-TlF-Lindblad"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 authors = ["ograsdijk <o.grasdijk@gmail.com>"]
 
@@ -8,8 +8,8 @@ authors = ["ograsdijk <o.grasdijk@gmail.com>"]
 python = "^3.8"
 numpy = "^1.20"
 sympy = "^1.1"
-centrex_TlF_hamiltonian = "^0.1"
-centrex_TlF_couplings = "^0.1"
+centrex_tlf_hamiltonian = "^0.2"
+centrex_tlf_couplings = "^0.2"
 julia = "^0.5.7"
 
 [tool.poetry.dev-dependencies]

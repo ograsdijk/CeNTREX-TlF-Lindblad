@@ -6,12 +6,14 @@ import sympy as smp
 from .utils import generate_density_matrix_symbolic
 from .ode_parameters import odeParameters
 
-import centrex_TlF_couplings as couplings
+import centrex_tlf_couplings as couplings
 
 __all__ = ["system_of_equations_to_lines", "generate_preamble"]
 
 
-def generate_preamble(odepars: odeParameters, transitions: Sequence[couplings.TransitionSelector]) -> str:
+def generate_preamble(
+    odepars: odeParameters, transitions: Sequence[couplings.TransitionSelector]
+) -> str:
     # check if the symbols in transitions are defined by odepars
     odepars.check_transition_symbols(transitions)
     preamble = """function Lindblad_rhs!(du, ρ, p, t)

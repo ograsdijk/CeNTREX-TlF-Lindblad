@@ -4,8 +4,8 @@ from typing import Any, List, Literal, Optional, Sequence, Tuple, Union, overloa
 import numpy as np
 import numpy.typing as npt
 import sympy as smp
-from centrex_TlF_hamiltonian import states
-import centrex_TlF_couplings as couplings_TlF
+from centrex_tlf_hamiltonian import states
+import centrex_tlf_couplings as couplings_TlF
 from .utils_compact import compact_symbolic_hamiltonian_indices
 
 __all__ = [

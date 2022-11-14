@@ -1,8 +1,8 @@
 import numpy as np
 import sympy as smp
-from centrex_TlF_hamiltonian import states, hamiltonian
-import centrex_TlF_couplings as couplings
-import centrex_TlF_lindblad as lindblad
+from centrex_tlf_hamiltonian import states, hamiltonian
+import centrex_tlf_couplings as couplings
+import centrex_tlf_lindblad as lindblad
 
 
 def test_generate_symbolic_hamiltonian():
@@ -141,4 +141,4 @@ def test_generate_total_symbolic_hamiltonian():
     for dh, dtv in zip(np.diag(hamiltonian_symbolic), true_values):
         _dtv = float(dtv.subs(δl, 0)) if not isinstance(dtv, (int, float)) else dtv
         _dtv = 1.0 if _dtv == 0 else _dtv
-        assert abs(dh-dtv)/abs(_dtv) < 1e-2
+        assert abs(dh - dtv) / abs(_dtv) < 1e-2
