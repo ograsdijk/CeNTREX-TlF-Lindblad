@@ -147,9 +147,8 @@ def setup_parameter_scan_ND(
         values (list, np.ndarray): list or np.ndarray of values to scan over
                                     for each parameter
     """
-    # create all possible combinations between parameter values with
-    # meshgrid
-    params = np.array(np.meshgrid(*values)).T.reshape(-1, len(values))
+    # create all possible combinations between parameter values with meshgrid
+    params = np.array(np.meshgrid(*values, indexing = "ij")).T.reshape(-1, len(values))
 
     setup_parameter_scan_zipped(odePar, parameters, params.T)
 
@@ -522,7 +521,7 @@ def get_results_parameter_scan(
             results = results.reshape(
                 [len(val) for val in _scan_values] # type: ignore
             )  # type: ignore
-            X, Y = np.meshgrid(*_scan_values)
+            X, Y = np.meshgrid(*_scan_values, indexing = "ij")
             return X, Y, results.T
         else:
             return scan_values, results  # type: ignore
