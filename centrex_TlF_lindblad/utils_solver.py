@@ -13,7 +13,6 @@ numeric = Union[int, float, complex]
 
 __all__ = [
     "setup_initial_condition_scan",
-    "setup_parameter_scan_1D",
     "setup_ratio_calculation",
     "setup_state_integral_calculation_state_idxs",
     "setup_state_integral_calculation",
@@ -26,7 +25,65 @@ __all__ = [
     "setup_problem_parameter_scan",
     "solve_problem_parameter_scan",
     "get_results_parameter_scan",
+    "OBEProblem",
+    "OBEEnsembleProblem",
+    "OBEProblemConfig",
+    "OBEEnsembleProblemConfig",
+    "OBEResult",
+    "OBEResultParameterScan",
 ]
+
+
+@dataclass
+class OBEProblem:
+    odepars: odeParameters
+    ρ: npt.NDArray[np.complex_]
+    tspan: Union[List[float], Tuple[float]]
+    name: str = "prob"
+
+
+@dataclass
+class OBEEnsembleProblem:
+    problem: OBEProblem
+    parameters: List[str]
+    scan_values: List[npt.NDArray[Union[np.int_, np.float_, np.complex_]]]
+    name: str = "ens_prob"
+    output_func: Optional[str] = None
+    zipped: bool = False
+
+
+@dataclass
+class OBEProblemConfig:
+    method: str = "Tsit5()"
+    abstol: float = 1e-7
+    reltol: float = 1e-4
+    dt: float = 1e-8
+    callback: Optional[str] = None
+    dtmin: Optional[int] = None
+    maxiters: int = 100_000
+    saveat: Optional[Union[List[float], npt.NDArray[np.float_]]] = None
+    save_everystep: bool = True
+    save_idxs: Optional[List[float]] = None
+    progress: bool = False
+
+
+class OBEEnsembleProblemConfig(OBEProblemConfig):
+    distributed_method: str = "EnsembleDistributed()"
+    trajectories: Optional[int] = None
+
+
+@dataclass
+class OBEResult:
+    t: npt.NDArray[np.float_]
+    y: npt.NDArray[np.complex_]
+
+
+@dataclass
+class OBEResultParameterScan:
+    parameters: List[str]
+    scan_values: List[npt.NDArray[Union[np.int_, np.float_, np.complex_]]]
+    results: npt.NDArray[np.complex_]
+    zipped: bool
 
 
 def setup_initial_condition_scan(
@@ -43,54 +100,13 @@ def setup_initial_condition_scan(
     )
 
 
-def setup_parameter_scan_1D(
-    odePar: odeParameters,
-    parameters: Union[str, List[str]],
-    values: Union[List[Number], npt.NDArray[Union[np.int_, np.float_, np.complex_]]],
-) -> None:
-    """
-    Convenience function for setting up a 1D parameter scan.
-    Scan can be performed over multiple parameters simultaneously,
-    but only for the same value for each parameter. For different
-    values per parameter see setup_parameter_scan_zipped.
-
-    Args:
-        odePar (odeParameters): object containing all the parameters
-                                for the ODE system
-        parameters (str, list): parameter or list of parameters to
-                                scan over
-        values (list, np.ndarray): values to scan the parameter(s)
-                                    over.
-    """
-    # check if parameters is a list, get indices of the parameters
-    # as defined in odePar
-    if isinstance(parameters, (list, tuple)):
-        indices = [odePar.get_index_parameter(par) for par in parameters]
-    else:
-        indices = [odePar.get_index_parameter(parameters)]
-
-    # generate the parameter sequence for the prob_func function
-    pars = list(odePar.p)
-    for idx in indices:
-        pars[idx] = "params[i]"
-    _pars = "[" + ",".join([str(p) for p in pars]) + "]"
-
-    # generate prob_func which remakes the ODE problem
-    # for each different parameter set
-    setup_initial_condition_scan(values)
-    Main.eval(
-        f"""
-    @everywhere function prob_func(prob,i,repeat)
-        remake(prob, p = {_pars})
-    end
-    """
-    )
-
-
 def setup_parameter_scan_zipped(
     odePar: odeParameters,
     parameters: Union[str, List[str]],
-    values: Union[List[Number], npt.NDArray[Union[np.int_, np.float_, np.complex_]]],
+    values: Union[
+        npt.NDArray[Union[np.int_, np.float_, np.complex_]],
+        List[npt.NDArray[Union[np.int_, np.float_, np.complex_]]],
+    ],
 ) -> None:
     """
     Convenience function for initializing a 1D parameter scan over
@@ -133,7 +149,7 @@ def setup_parameter_scan_zipped(
 def setup_parameter_scan_ND(
     odePar: odeParameters,
     parameters: Union[str, List[str]],
-    values: Union[List[Number], npt.NDArray[Union[np.int_, np.float_, np.complex_]]],
+    values: List[npt.NDArray[Union[np.int_, np.float_, np.complex_]]],
 ) -> None:
     """
     Convenience function for generating an ND parameter scan.
@@ -148,7 +164,7 @@ def setup_parameter_scan_ND(
                                     for each parameter
     """
     # create all possible combinations between parameter values with meshgrid
-    params = np.array(np.meshgrid(*values, indexing = "ij")).T.reshape(-1, len(values))
+    params = np.array(np.meshgrid(*values, indexing="ij")).T.reshape(-1, len(values))
 
     setup_parameter_scan_zipped(odePar, parameters, params.T)
 
@@ -188,9 +204,7 @@ def setup_ratio_calculation(
 
 
 def setup_state_integral_calculation_state_idxs(
-    output_func: Optional[str] = None,
-    nphotons: bool = False,
-    Γ: Optional[float] = None,
+    output_func: Optional[str] = None, nphotons: bool = False, Γ: Optional[float] = None
 ) -> str:
     """Setup an integration output_function for an EnsembleProblem.
     Uses trapezoidal integration to integrate the states.
@@ -321,7 +335,7 @@ def setup_problem(
     odepars: odeParameters,
     tspan: Union[List[float], Tuple[float]],
     ρ: npt.NDArray[np.complex_],
-    problem_name="prob",
+    problem_name: str = "prob",
 ) -> None:
     odepars.generate_p_julia()
     Main.ρ = ρ
@@ -336,23 +350,19 @@ def setup_problem(
     )
 
 
-def setup_problem_parameter_scan(
-    odepars: odeParameters,
-    tspan: List[float],
-    ρ: npt.NDArray[np.complex_],
-    parameters: List[str],
-    values: Union[List[Number], npt.NDArray[Union[np.int_, np.float_, np.complex_]]],
-    dimensions: int = 1,
-    problem_name: str = "prob",
-    output_func: Optional[str] = None,
-    zipped: bool = False,
-) -> str:
+def setup_problem_parameter_scan(scan: OBEEnsembleProblem) -> None:
+    odepars = scan.problem.odepars
+    tspan = scan.problem.tspan
+    ρ = scan.problem.ρ
+    problem_name = scan.problem.name
+    zipped = scan.zipped
+    parameters = scan.parameters
+    values = scan.scan_values
+    output_func = scan.output_func
+
     setup_problem(odepars, tspan, ρ, problem_name)
-    if dimensions == 1:
-        if zipped:
-            setup_parameter_scan_zipped(odepars, parameters, values)
-        else:
-            setup_parameter_scan_1D(odepars, parameters, values)
+    if zipped:
+        setup_parameter_scan_zipped(odepars, parameters, values)
     else:
         setup_parameter_scan_ND(odepars, parameters, values)
     if output_func is not None:
@@ -371,63 +381,76 @@ def setup_problem_parameter_scan(
                                                     prob_func = prob_func)
         """
         )
-    return f"ens_{problem_name}"
 
 
 def solve_problem(
-    method: str = "Tsit5()",
-    abstol: float = 1e-7,
-    reltol: float = 1e-4,
-    dt: float = 1e-8,
-    callback: Optional[str] = None,
-    problem_name: str = "prob",
-    progress: bool = False,
-    saveat: Optional[Union[List[float], npt.NDArray[np.float_]]] = None,
-    dtmin: Optional[int] = None,
-    maxiters: int = 100_000,
+    problem: OBEProblem,
+    config: OBEProblemConfig = OBEProblemConfig(),
 ) -> None:
+    method = config.method
+    abstol = config.abstol
+    reltol = config.reltol
+    dt = config.dt
+    callback = config.callback
+    dtmin = config.dtmin
+    maxiters = config.maxiters
+    saveat = config.saveat
+    progress = config.progress
+    save_everystep = config.save_everystep
+    save_idxs = config.save_idxs
+
     force_dtmin = "false" if dtmin is None else "true"
     _dtmin = "nothing" if dtmin is None else str(dtmin)
-    _saveat = saveat if saveat is not None else "[]"
+    _saveat = "[]" if saveat is None else str(saveat)
+    _save_idxs = "nothing" if save_idxs is None else str(save_idxs)
 
     if callback is not None:
         Main.eval(
             f"""
-            sol = solve({problem_name}, {method}, abstol = {abstol},
+            sol = solve({problem.name}, {method}, abstol = {abstol},
                         reltol = {reltol}, dt = {dt},
                         progress = {str(progress).lower()},
                         callback = {callback}, saveat = {_saveat},
                         dtmin = {_dtmin}, maxiters = {maxiters},
-                        force_dtmin = {force_dtmin}
+                        force_dtmin = {force_dtmin}, save_idxs = {_save_idxs},
+                        save_everystep = {str(save_everystep).lower()}
                     )
         """
         )
     else:
         Main.eval(
             f"""
-            sol = solve({problem_name}, {method}, abstol = {abstol},
+            sol = solve({problem.name}, {method}, abstol = {abstol},
                         reltol = {reltol}, dt = {dt},
                         progress = {str(progress).lower()}, saveat = {_saveat},
                         dtmin = {_dtmin}, maxiters = {maxiters},
-                        force_dtmin = {force_dtmin}
+                        force_dtmin = {force_dtmin}, save_idxs = {_save_idxs},
+                        save_everystep = {str(save_everystep).lower()}
                     )
         """
         )
 
 
 def solve_problem_parameter_scan(
-    method: str = "Tsit5()",
-    distributed_method: str = "EnsembleDistributed()",
-    abstol: float = 1e-7,
-    reltol: float = 1e-4,
-    dt: float = 1e-8,
-    save_everystep: bool = True,
-    callback: Optional[str] = None,
-    ensemble_problem_name: str = "ens_prob",
-    trajectories: Optional[int] = None,
-    saveat: Optional[Union[List[float], npt.NDArray[np.float_]]] = None,
-    save_idxs: Optional[List[float]] = None,
+    scan: OBEEnsembleProblem,
+    config: OBEEnsembleProblemConfig = OBEEnsembleProblemConfig(),
 ) -> None:
+    ensemble_problem_name = scan.name
+
+    method = config.method
+    abstol = config.abstol
+    reltol = config.reltol
+    dt = config.dt
+    callback = config.callback
+    dtmin = config.dtmin
+    maxiters = config.maxiters
+    saveat = config.saveat
+    progress = config.progress
+    trajectories = config.trajectories
+    save_idxs = config.save_idxs
+    distributed_method = config.distributed_method
+    save_everystep = config.save_everystep
+
     _trajectores = "size(params)[1]" if trajectories is None else str(trajectories)
     _saveat = "[]" if saveat is None else str(saveat)
     _save_idxs = "nothing" if save_idxs is None else str(save_idxs)
@@ -457,116 +480,82 @@ def solve_problem_parameter_scan(
         )
 
 
-@dataclass
-class OBEResult:
-    t: npt.NDArray[np.float_]
-    y: npt.NDArray[np.complex_]
-
-
 def get_results() -> OBEResult:
     """Retrieve the results of a single trajectory OBE simulation solution.
 
     Returns:
-        tuple: tuple containing the timestamps and an n x m numpy arra, where
-                n is the number of states, and m the number of timesteps
+        tuple: OBEResult dataclass with the solution of the OBE for a single trajectory
     """
     results = np.real(np.einsum("jji->ji", np.array(Main.eval("sol[:]")).T))
     t = Main.eval("sol.t")
     return OBEResult(t, results)
 
 
-@overload
-def get_results_parameter_scan(scan_values: Literal[None]) -> npt.NDArray[np.complex_]:
-    ...
+def get_results_parameter_scan(scan: OBEEnsembleProblem) -> OBEResultParameterScan:
+    """
+    Retrieve the results of a parameter scan
 
+    Args:
+        scan (ParameterScan): ParameterScan object containing the information of the
+        parameter scan.
 
-@overload
-def get_results_parameter_scan() -> npt.NDArray[np.complex_]:
-    ...
-
-
-@overload
-def get_results_parameter_scan(
-    scan_values: Union[
-        List[Number],
-        npt.NDArray[np.int_],
-        npt.NDArray[np.float_],
-        npt.NDArray[np.complex_],
-    ]
-) -> Tuple[
-    npt.NDArray[np.complex_], npt.NDArray[np.complex_], npt.NDArray[np.complex_]
-]:
-    ...
-
-
-def get_results_parameter_scan(
-    scan_values: Optional[
-        Union[
-            List[Number],
-            npt.NDArray[np.int_],
-            npt.NDArray[np.float_],
-            npt.NDArray[np.complex_],
-        ]
-    ] = None
-) -> Union[
-    npt.NDArray[np.complex_],
-    Tuple[npt.NDArray[np.complex_], npt.NDArray[np.complex_]],
-    Tuple[npt.NDArray[np.complex_], npt.NDArray[np.complex_], npt.NDArray[np.complex_]],
-]:
-    results = np.array(Main.eval("sol.u"))
-    if scan_values is not None:
-        _scan_values = scan_values
-        if isinstance(_scan_values[0], (list, np.ndarray)):
-            # this will always give a valid length for len(val) but mypy throws an error
-            results = results.reshape(
-                [len(val) for val in _scan_values] # type: ignore
-            )  # type: ignore
-            X, Y = np.meshgrid(*_scan_values, indexing = "ij")
-            return X, Y, results.T
+    Returns:
+        OBEResultParameterScan: Dataclass containing the results of the parameter scan.
+    """
+    if scan.zipped:
+        if scan.output_func is None:
+            results = np.array(
+                [
+                    Main.eval(f"sol.u[{idx+1}][end]")
+                    for idx in range(np.product([len(v) for v in scan.scan_values]))
+                ]
+            )
         else:
-            return scan_values, results  # type: ignore
+            results = np.array(Main.eval("sol.u"))
+        return OBEResultParameterScan(scan.parameters, scan.scan_values, results, True)
     else:
-        return results
+        if scan.output_func is None:
+            results = np.array(
+                [
+                    Main.eval(f"sol.u[{idx+1}][end]")
+                    for idx in range(np.product([len(v) for v in scan.scan_values]))
+                ]
+            )
+
+        else:
+            results = np.array(Main.eval("sol.u"))
+
+        if len(results.shape) == 1:
+            results = results.reshape([len(v) for v in scan.scan_values][::-1]).T
+        else:
+            results = results.reshape(
+                [len(v) for v in scan.scan_values][::-1] + [results.shape[-1]]
+            ).T
+
+        return OBEResultParameterScan(
+            parameters=scan.parameters,
+            scan_values=np.meshgrid(*scan.scan_values, indexing="ij"),
+            results=results,
+            zipped=False,
+        )
 
 
 def do_simulation_single(
-    odepars: odeParameters,
-    tspan: Union[List[float], Tuple[float]],
-    ρ: npt.NDArray[np.complex_],
-    terminate_expression: Optional[str] = None,
-    dt: float = 1e-8,
-    saveat: Optional[Union[List[float], npt.NDArray[np.float_]]] = None,
-    dtmin: Optional[int] = None,
-    maxiters: int = 100_000,
+    problem: OBEProblem,
+    config: OBEProblemConfig = OBEProblemConfig(),
 ) -> OBEResult:
-    """Perform a single trajectory solve of the OBE equations for a specified
+    """
+    Perform a single trajectory solve of the OBE equations for a specified
     TlF system.
 
     Args:
-        odepars (odeParameters): object containing the ODE parameters used in
-        the solver
-        tspan (list, tuple): time range to solve for
-        terminate_expression (str, optional): Expression that determines when to
-                                            stop integration. Defaults to None.
-        saveat (array or float, optional): save solution at timesteps given by
-                                            saveat, either a list or every
-                                            saveat
-        dtmin (float, optional): minimum dt allowed for adaptive timestepping
-        maxiters (float, optional): maximum number of steps allowed
+        problem (OBEProblem): dataclass containing the OBE problem information
+        config (OBEProblemConfig, optional): dataclass containing the solver
+        configuration. Defaults to OBEProblemConfig().
 
     Returns:
-        tuple: tuple containing the timestamps and an n x m numpy array, where
-                n is the number of states, and m the number of timesteps
+        OBEResult: solver result dataclass
     """
-    callback_flag = False
-    if terminate_expression is not None:
-        setup_discrete_callback_terminate(odepars, terminate_expression)
-        callback_flag = True
-    setup_problem(odepars, tspan, ρ)
-    if callback_flag:
-        solve_problem(
-            callback="cb", saveat=saveat, dtmin=dtmin, dt=dt, maxiters=maxiters
-        )
-    else:
-        solve_problem(saveat=saveat, dtmin=dtmin, dt=dt, maxiters=maxiters)
+    setup_problem(problem.odepars, problem.tspan, problem.ρ, problem.name)
+    solve_problem(problem, config)
     return get_results()

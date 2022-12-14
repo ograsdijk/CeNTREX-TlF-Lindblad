@@ -2,24 +2,33 @@ from typing import Optional, Union, List
 import numpy as np
 import numpy.typing as npt
 from julia import Main
+from .utils_solver import OBEEnsembleProblem, OBEEnsembleProblemConfig
 
 __all__ = ["solve_problem_parameter_scan_progress"]
 
 
 def solve_problem_parameter_scan_progress(
-    method: str = "Tsit5()",
-    distributed_method: str = "EnsembleDistributed()",
-    abstol: float = 1e-7,
-    reltol: float = 1e-4,
-    save_everystep: bool = True,
-    callback: Optional[str] = None,
-    problem_name: str = "prob",
-    ensemble_problem_name: str = "ens_prob",
-    trajectories: Optional[int] = None,
-    output_func: Optional[str] = None,
-    saveat: Optional[Union[List[float], npt.NDArray[np.float_]]] = None,
-    save_idxs: Optional[List[float]] = None,
+    problem: OBEEnsembleProblem,
+    config: OBEEnsembleProblemConfig,
 ):
+
+    ensemble_problem_name = problem.name
+
+    method = config.method
+    abstol = config.abstol
+    reltol = config.reltol
+    dt = config.dt
+    callback = config.callback
+    dtmin = config.dtmin
+    maxiters = config.maxiters
+    saveat = config.saveat
+    progress = config.progress
+    trajectories = config.trajectories
+    save_idxs = config.save_idxs
+    distributed_method = config.distributed_method
+    save_everystep = config.save_everystep
+    output_func = problem.output_func
+
     _trajectories = "size(params)[1]" if trajectories is None else trajectories
     _callback = "nothing" if callback is None else callback
     _saveat = "[]" if saveat is None else str(saveat)

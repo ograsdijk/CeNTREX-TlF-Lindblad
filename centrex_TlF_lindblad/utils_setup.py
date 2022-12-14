@@ -346,7 +346,7 @@ def generate_OBE_system_transitions(
             J_transitions_ground.append(transition.J_ground)
         J_compact = [
             Ji
-            for Ji in np.unique([s.largest.J for s in H_reduced.X_states_basis])
+            for Ji in np.unique([s.largest.J for s in H_reduced.X_states_basis])  # type: ignore
             if Ji not in J_transitions_ground
         ]
         qn_compact = [
@@ -403,7 +403,7 @@ def generate_OBE_system_transitions(
         logger.info("generate_OBE_system: 3/6 -> Generating the symbolic Hamiltonian")
     if qn_compact is not None:
         H_symbolic, QN_compact = generate_total_symbolic_hamiltonian(
-            QN, H_int, couplings, transition_selectors, qn_compact=qn_compact
+            QN, H_int, couplings, transition_selectors, qn_compact=qn_compact  # type: ignore
         )
     else:
         H_symbolic = generate_total_symbolic_hamiltonian(
@@ -413,7 +413,7 @@ def generate_OBE_system_transitions(
     if verbose:
         logger.info("generate_OBE_system: 4/6 -> Generating the collapse matrices")
     C_array = couplings_TlF.collapse_matrices(
-        QN, ground_states, excited_states, gamma=Γ, qn_compact=qn_compact
+        QN, ground_states, excited_states, gamma=Γ, qn_compact=qn_compact  # type: ignore
     )
     if decay_channels is not None:
         if isinstance(decay_channels, list):
