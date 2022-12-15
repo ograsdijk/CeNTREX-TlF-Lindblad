@@ -6,8 +6,12 @@ import centrex_tlf_couplings as couplings_TlF
 import numpy as np
 import numpy.typing as npt
 import sympy as smp
+from centrex_tlf_couplings.utils_compact import (
+    compact_coupling_field,
+    insert_levels_coupling_field,
+)
 from centrex_tlf_hamiltonian import hamiltonian, states
-from centrex_tlf_hamiltonian.transitions import OpticalTransition, MicrowaveTransition
+from centrex_tlf_hamiltonian.transitions import MicrowaveTransition, OpticalTransition
 from julia import Main
 
 from . import utils_decay as decay
@@ -15,8 +19,8 @@ from .generate_hamiltonian import generate_total_symbolic_hamiltonian
 from .generate_julia_code import generate_preamble, system_of_equations_to_lines
 from .generate_system_of_equations import generate_system_of_equations_symbolic
 from .ode_parameters import odeParameters
-from .utils_julia import generate_ode_fun_julia, initialize_julia
 from .utils import SystemParameters
+from .utils_julia import generate_ode_fun_julia, initialize_julia
 
 __all__ = [
     "generate_OBE_system",
@@ -43,6 +47,7 @@ class OBESystem:
     preamble: str = ""
     QN_original: Optional[Sequence[states.State]] = None
     decay_channels: Optional[Sequence[decay.DecayChannel]] = None
+    couplings_original: Optional[Sequence[List[Any]]] = None
 
     def __repr__(self) -> str:
         ground = [s.largest for s in self.ground]
@@ -195,6 +200,13 @@ def generate_OBE_system(
         H_symbolic, QN_compact = generate_total_symbolic_hamiltonian(
             QN, H_int, couplings, transitions, qn_compact=qn_compact
         )
+        indices_compact = [np.argmax(qn.state_vector(QN)) for qn in QN_compact]
+        indices_compact = [
+            idc for idc in np.arange(len(QN), dtype=int) if idc not in indices_compact
+        ]
+        couplings_compact = []
+        for coupling in couplings:
+            couplings_compact.append(compact_coupling_field(coupling, indices_compact))
     else:
         H_symbolic = generate_total_symbolic_hamiltonian(
             QN, H_int, couplings, transitions
@@ -222,6 +234,7 @@ def generate_OBE_system(
                 f"decay_channels is type f{type(decay_channels)}; supply a list, tuple"
                 " or np.ndarray"
             )
+        couplings = [insert_levels_coupling_field(coupling) for coupling in couplings]
 
         if qn_compact is not None:
             indices, H_symbolic = decay.add_levels_symbolic_hamiltonian(
@@ -231,6 +244,9 @@ def generate_OBE_system(
             C_array = decay.add_decays_C_arrays(
                 _decay_channels, indices, QN_compact, C_array, system_parameters.Γ
             )
+            couplings_compact = [
+                insert_levels_coupling_field(coupling) for coupling in couplings_compact
+            ]
         else:
             indices, H_symbolic = decay.add_levels_symbolic_hamiltonian(
                 H_symbolic, _decay_channels, QN, excited_states
@@ -256,7 +272,7 @@ def generate_OBE_system(
         QN=QN_compact if qn_compact is not None else QN,
         ground=ground_states,
         excited=excited_states,
-        couplings=couplings,
+        couplings=couplings if qn_compact is None else couplings_compact,
         H_symbolic=H_symbolic,
         H_int=H_int,
         V_ref_int=V_ref_int,
@@ -265,6 +281,7 @@ def generate_OBE_system(
         code_lines=code_lines,
         QN_original=None if qn_compact is None else QN,
         decay_channels=_decay_channels if decay_channels else None,
+        couplings_original=None if qn_compact is None else couplings,
     )
     return obe_system
 
@@ -405,6 +422,13 @@ def generate_OBE_system_transitions(
         H_symbolic, QN_compact = generate_total_symbolic_hamiltonian(
             QN, H_int, couplings, transition_selectors, qn_compact=qn_compact  # type: ignore
         )
+        indices_compact = [np.argmax(qn.state_vector(QN)) for qn in QN_compact]
+        indices_compact = [
+            idc for idc in np.arange(len(QN), dtype=int) if idc not in indices_compact
+        ]
+        couplings_compact = [
+            compact_coupling_field(coupling, indices_compact) for coupling in couplings
+        ]
     else:
         H_symbolic = generate_total_symbolic_hamiltonian(
             QN, H_int, couplings, transition_selectors
@@ -427,6 +451,9 @@ def generate_OBE_system_transitions(
                 f"decay_channels is type f{type(decay_channels)}; supply a list, tuple"
                 " or np.ndarray"
             )
+
+        couplings = [insert_levels_coupling_field(coupling) for coupling in couplings]
+
         if qn_compact is not None:
             indices, H_symbolic = decay.add_levels_symbolic_hamiltonian(
                 H_symbolic, _decay_channels, QN_compact, excited_states
@@ -435,6 +462,9 @@ def generate_OBE_system_transitions(
             C_array = decay.add_decays_C_arrays(
                 _decay_channels, indices, QN_compact, C_array, Γ
             )
+            couplings_compact = [
+                insert_levels_coupling_field(coupling) for coupling in couplings_compact
+            ]
         else:
             indices, H_symbolic = decay.add_levels_symbolic_hamiltonian(
                 H_symbolic, _decay_channels, QN, excited_states
@@ -460,7 +490,7 @@ def generate_OBE_system_transitions(
         QN=QN_compact if qn_compact is not None else QN,
         ground=ground_states,
         excited=excited_states,
-        couplings=couplings,
+        couplings=couplings_compact if qn_compact is not None else couplings,
         H_symbolic=H_symbolic,
         H_int=H_int,
         V_ref_int=V_ref_int,
@@ -469,6 +499,7 @@ def generate_OBE_system_transitions(
         code_lines=code_lines,
         QN_original=None if qn_compact is None else QN,
         decay_channels=_decay_channels if decay_channels else None,
+        couplings_original=None if qn_compact is None else couplings,
     )
     return obe_system
 
