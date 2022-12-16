@@ -5,6 +5,7 @@ from typing import Any, Callable, List, Optional, Sequence, Union
 import centrex_tlf_couplings as couplings_TlF
 import numpy as np
 import numpy.typing as npt
+import psutil
 import sympy as smp
 from centrex_tlf_couplings.utils_compact import (
     compact_coupling_field,
@@ -614,7 +615,6 @@ def setup_OBE_system_julia(
 
 
 def setup_OBE_system_julia_transitions(
-    system_parameters: SystemParameters,
     ode_parameters: odeParameters,
     transitions: Sequence[Union[OpticalTransition, MicrowaveTransition]],
     transition_selectors: Sequence[couplings_TlF.TransitionSelector],
@@ -640,15 +640,13 @@ def setup_OBE_system_julia_transitions(
     verbose: bool = False,
     init_julia: bool = True,
     normalize_pol: bool = False,
+    n_procs: Optional[int] = None,
+    Γ: float = hamiltonian.Γ,
 ):
     """Convenience function for generating the OBE system and initializing it in
     Julia
 
     Args:
-        system_parameters (SystemParameters): dataclass holding the system
-                                                parameters, e.g. Γ,
-                                                (laser) ground states,
-                                                (laser) excited states
         ode_parameters (odeParameters): dataclass containing the ode parameters.
                                         e.g. Ω, δ, vz, ..., etc.
         transitions (Sequence[TransitionSelector]): Sequence containing all transition
@@ -672,6 +670,11 @@ def setup_OBE_system_julia_transitions(
                         ground, exxcited, QN, H_int, V_ref_int, couplings,
                         H_symbolic, C_array, system, code_lines, preamble
     """
+    if n_procs is None:
+        _n_procs = psutil.cpu_count(logical=False) + 1
+    else:
+        _n_procs = n_procs
+
     obe_system = generate_OBE_system_transitions(
         transitions=transitions,
         transition_selectors=transition_selectors,
@@ -679,7 +682,7 @@ def setup_OBE_system_julia_transitions(
         decay_channels=decay_channels,
         E=E,
         B=B,
-        Γ=system_parameters.Γ,
+        Γ=Γ,
         X_constants=X_constants,
         B_constants=B_constants,
         nuclear_spins=nuclear_spins,
@@ -705,9 +708,9 @@ def setup_OBE_system_julia_transitions(
         if verbose:
             logger.info(
                 "setup_OBE_system_julia: 2/3 -> Initializing Julia on "
-                f"{system_parameters.nprocs} cores"
+                f"{_n_procs} cores"
             )
-        initialize_julia(nprocs=system_parameters.nprocs, verbose=verbose)
+        initialize_julia(nprocs=_n_procs, verbose=verbose)
 
     if verbose:
         logger.info(
@@ -716,7 +719,7 @@ def setup_OBE_system_julia_transitions(
         )
         logging.basicConfig(level=logging.WARNING)
     generate_ode_fun_julia(obe_system.preamble, obe_system.code_lines)
-    Main.eval(f"@everywhere Γ = {system_parameters.Γ}")
+    Main.eval(f"@everywhere Γ = {Γ}")
     ode_parameters.generate_p_julia()
     if not full_output:
         return obe_system.QN

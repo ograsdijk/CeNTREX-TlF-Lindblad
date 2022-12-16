@@ -11,6 +11,7 @@ sympy = "^1.1"
 centrex_tlf_hamiltonian = "^0.2"
 centrex_tlf_couplings = "^0.2"
 julia = "^0.5.7"
+psutil = "^5.9.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
