@@ -1,10 +1,11 @@
-import sympy as smp
+import julia
 import numpy as np
 import numpy.typing as npt
+import sympy as smp
+from centrex_tlf_couplings import TransitionSelector
+from centrex_tlf_hamiltonian import hamiltonian
 
-import julia
-
-__all__ = ["odeParameters"]
+__all__ = ["odeParameters", "generate_ode_parameters"]
 
 
 julia_funcs = [
@@ -349,3 +350,38 @@ class odeParameters:
                     return np.ones(len(t)) * res
                 else:
                     return res
+
+
+def generate_ode_parameters(
+    transition_selectors: TransitionSelector, **kwargs
+) -> odeParameters:
+    parameters = []
+    for idt, ts in enumerate(transition_selectors):
+        if ts.phase_modulation:
+            pars = [
+                (str(ts.Ω), f"Ωt{idt}*phase_modulation(t, β{idt}, ωphase{idt})"),
+                (f"Ωt{idt}", hamiltonian.Γ),
+                (f"β{idt}", 3.8),
+                (f"ωphase{idt}", hamiltonian.Γ),
+            ]
+            parameters.extend(pars)
+        else:
+            parameters.append((str(ts.Ω), hamiltonian.Γ))
+        parameters.append((str(ts.δ), 0.0))
+        ps = ts.polarization_symbols
+        if len(ps) == 1:
+            parameters.append((str(ps[0]), 1))
+        elif len(ps) == 2:
+            pars = [
+                (f"ω{idt}", hamiltonian.Γ),
+                (f"φ{idt}", 0),
+                (f"P{idt}", f"sin(ω{idt}*t+φ{idt})"),
+                (str(ps[0]), f"P{idt} > 0"),
+                (str(ps[1]), f"P{idt} <= 0"),
+            ]
+            parameters.extend(pars)
+    parameters_dict = dict(parameters)
+    if kwargs is not None:
+        for key, val in kwargs.items():
+            parameters_dict[key] = val
+    return odeParameters(**parameters_dict)
