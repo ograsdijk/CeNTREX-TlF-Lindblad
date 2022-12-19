@@ -51,8 +51,9 @@ def system_of_equations_to_lines(
     ρ = generate_density_matrix_symbolic(n_states)
 
     code_lines = []
+    # only calculating the upper triangle and diagonal
     for idx in range(n_states):
-        for idy in range(n_states):
+        for idy in range(idx, n_states):
             if system[idx, idy] != 0:
                 cline = str(system[idx, idy])
                 cline = f"du[{idx+1},{idy+1}] = " + cline
@@ -68,10 +69,17 @@ def system_of_equations_to_lines(
                         cline = cline.replace(_ + "\n", f"ρ[{i+1},{j+1}]")
                         cline = cline.replace(_ + ")", f"ρ[{i+1},{j+1}])")
                 cline = cline.strip()
+                for i in range(n_states):
+                    for j in range(0, i):
+                        cline = cline.replace(
+                            f"ρ[{i+1},{j+1}]", f"conj(ρ[{j+1},{i+1}])"
+                        )
+
                 code_lines.append(cline)
-    for idx in range(n_states):
-        for idy in range(0, idx - 1):
-            if system[idx, idy] != 0:
-                cline = f"du[{idx+1},{idy+1}] = conj(du[{idy+1},{idx+1}])"
-                code_lines.append(cline)
+    # # lower triangle is the complex conjugate of the upper triangle
+    # for idx in range(n_states):
+    #     for idy in range(0, idx):
+    #         if system[idx, idy] != 0:
+    #             cline = f"du[{idx+1},{idy+1}] = conj(du[{idy+1},{idx+1}])"
+    #             code_lines.append(cline)
     return code_lines
