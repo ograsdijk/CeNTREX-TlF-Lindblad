@@ -13,7 +13,7 @@ def solve_problem_parameter_scan_progress(
 ):
 
     ensemble_problem_name = problem.name
-
+    problem_name = problem.problem.name
     method = config.method
     abstol = config.abstol
     reltol = config.reltol
