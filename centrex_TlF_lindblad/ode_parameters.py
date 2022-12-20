@@ -15,6 +15,8 @@ julia_funcs = [
     "multipass_2d_intensity",
     "sawtooth_wave",
     "variable_on_off",
+    "rabi_from_intensity",
+    "multipass_2d_rabi",
 ]
 
 type_conv = {
@@ -374,7 +376,7 @@ def generate_ode_parameters(
         elif len(ps) == 2:
             pars = [
                 (f"ω{idt}", hamiltonian.Γ),
-                (f"φ{idt}", 0),
+                (f"φ{idt}", 0.0),
                 (f"P{idt}", f"sin(ω{idt}*t+φ{idt})"),
                 (str(ps[0]), f"P{idt} > 0"),
                 (str(ps[1]), f"P{idt} <= 0"),
