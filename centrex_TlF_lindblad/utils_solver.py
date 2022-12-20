@@ -67,6 +67,7 @@ class OBEProblemConfig:
     progress: bool = False
 
 
+@dataclass
 class OBEEnsembleProblemConfig(OBEProblemConfig):
     distributed_method: str = "EnsembleDistributed()"
     trajectories: Optional[int] = None
@@ -451,7 +452,7 @@ def solve_problem_parameter_scan(
     distributed_method = config.distributed_method
     save_everystep = config.save_everystep
 
-    _trajectores = "size(params)[1]" if trajectories is None else str(trajectories)
+    _trajectories = "size(params)[1]" if trajectories is None else str(trajectories)
     _saveat = "[]" if saveat is None else str(saveat)
     _save_idxs = "nothing" if save_idxs is None else str(save_idxs)
     if callback is not None:
@@ -459,7 +460,7 @@ def solve_problem_parameter_scan(
             f"""
             sol = solve({ensemble_problem_name}, {method}, {distributed_method},
                         abstol = {abstol}, reltol = {reltol}, dt = {dt},
-                        trajectories = {_trajectores}, callback = {callback},
+                        trajectories = {_trajectories}, callback = {callback},
                         save_everystep = {str(save_everystep).lower()},
                         saveat = {_saveat}, save_idxs = {_save_idxs}
                     );
@@ -471,7 +472,7 @@ def solve_problem_parameter_scan(
             f"""
             sol = solve({ensemble_problem_name}, {method}, {distributed_method},
                         abstol = {abstol}, reltol = {reltol}, dt = {dt},
-                        trajectories = {_trajectores},
+                        trajectories = {_trajectories},
                         save_everystep = {str(save_everystep).lower()},
                         saveat = {_saveat}, save_idxs = {_save_idxs}
                     );
@@ -491,7 +492,9 @@ def get_results() -> OBEResult:
     return OBEResult(t, results)
 
 
-def get_results_parameter_scan(scan: OBEEnsembleProblem) -> OBEResultParameterScan:
+def get_results_parameter_scan(
+    scan: OBEEnsembleProblem, trajectories: Optional[int] = None
+) -> OBEResultParameterScan:
     """
     Retrieve the results of a parameter scan
 
@@ -502,24 +505,31 @@ def get_results_parameter_scan(scan: OBEEnsembleProblem) -> OBEResultParameterSc
     Returns:
         OBEResultParameterScan: Dataclass containing the results of the parameter scan.
     """
+    if trajectories is None:
+        if scan.zipped is not None:
+            _trajectories = len(scan.scan_values[0])
+        else:
+            _trajectories = len(np.product([len(v) for v in scan.scan_values]))
+    else:
+        _trajectories = trajectories
+
     if scan.zipped:
         if scan.output_func is None:
             results = np.array(
-                [
-                    Main.eval(f"sol.u[{idx+1}][end]")
-                    for idx in range(np.product([len(v) for v in scan.scan_values]))
-                ]
+                [Main.eval(f"sol.u[{idx+1}][end]") for idx in range(_trajectories)]
             )
         else:
             results = np.array(Main.eval("sol.u"))
-        return OBEResultParameterScan(scan.parameters, scan.scan_values, results, True)
+        return OBEResultParameterScan(
+            parameters=scan.parameters,
+            scan_values=scan.scan_values,
+            results=results,
+            zipped=True,
+        )
     else:
         if scan.output_func is None:
             results = np.array(
-                [
-                    Main.eval(f"sol.u[{idx+1}][end]")
-                    for idx in range(np.product([len(v) for v in scan.scan_values]))
-                ]
+                [Main.eval(f"sol.u[{idx+1}][end]") for idx in range(_trajectories)]
             )
 
         else:
