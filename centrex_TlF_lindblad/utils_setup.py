@@ -697,30 +697,29 @@ def setup_OBE_system_julia_transitions(
         normalize_pol=normalize_pol,
     )
     obe_system.full_output = full_output
-    if verbose:
-        logging.basicConfig(level=logging.INFO)
-        logger = logging.getLogger(__name__)
-        logger.setLevel(logging.INFO)
-        logger.info("setup_OBE_system_julia: 1/3 -> Generating the preamble")
-    obe_system.preamble = generate_preamble(ode_parameters, transition_selectors)
 
     if init_julia:
+        if verbose:
+            logging.basicConfig(level=logging.INFO)
+            logger = logging.getLogger(__name__)
+            logger.setLevel(logging.INFO)
+            logger.info("setup_OBE_system_julia: 1/3 -> Generating the preamble")
+        obe_system.preamble = generate_preamble(ode_parameters, transition_selectors)
         if verbose:
             logger.info(
                 "setup_OBE_system_julia: 2/3 -> Initializing Julia on "
                 f"{_n_procs} cores"
             )
         initialize_julia(nprocs=_n_procs, verbose=verbose)
-
-    if verbose:
-        logger.info(
-            "setup_OBE_system_julia: 3/3 -> Defining the ODE equation and parameters in"
-            " Julia"
-        )
-        logging.basicConfig(level=logging.WARNING)
-    generate_ode_fun_julia(obe_system.preamble, obe_system.code_lines)
-    Main.eval(f"@everywhere Γ = {Γ}")
-    ode_parameters.generate_p_julia()
+        if verbose:
+            logger.info(
+                "setup_OBE_system_julia: 3/3 -> Defining the ODE equation and parameters in"
+                " Julia"
+            )
+            logging.basicConfig(level=logging.WARNING)
+        generate_ode_fun_julia(obe_system.preamble, obe_system.code_lines)
+        Main.eval(f"@everywhere Γ = {Γ}")
+        ode_parameters.generate_p_julia()
     if not full_output:
         return obe_system.QN
     else:
