@@ -22,6 +22,7 @@ from .generate_system_of_equations import generate_system_of_equations_symbolic
 from .ode_parameters import odeParameters
 from .utils import SystemParameters
 from .utils_julia import generate_ode_fun_julia, initialize_julia
+from .utils_compact import generate_qn_compact
 
 __all__ = [
     "generate_OBE_system",
@@ -201,13 +202,9 @@ def generate_OBE_system(
         H_symbolic, QN_compact = generate_total_symbolic_hamiltonian(
             QN, H_int, couplings, transitions, qn_compact=qn_compact
         )
-        indices_compact = [np.argmax(qn.state_vector(QN)) for qn in QN_compact]
-        indices_compact = [
-            idc for idc in np.arange(len(QN), dtype=int) if idc not in indices_compact
+        couplings_compact = [
+            compact_coupling_field(coupling, QN, qn_compact) for coupling in couplings
         ]
-        couplings_compact = []
-        for coupling in couplings:
-            couplings_compact.append(compact_coupling_field(coupling, indices_compact))
     else:
         H_symbolic = generate_total_symbolic_hamiltonian(
             QN, H_int, couplings, transitions
@@ -359,18 +356,7 @@ def generate_OBE_system_transitions(
         raise ValueError("H_reduced.QN_basis is None")
 
     if qn_compact == True:
-        J_transitions_ground = []
-        for transition in transitions:
-            J_transitions_ground.append(transition.J_ground)
-        J_compact = [
-            Ji
-            for Ji in np.unique([s.largest.J for s in H_reduced.X_states_basis])  # type: ignore
-            if Ji not in J_transitions_ground
-        ]
-        qn_compact = [
-            states.QuantumSelector(J=Ji, electronic=states.ElectronicState.X)
-            for Ji in J_compact
-        ]
+        qn_compact = generate_qn_compact(transitions, H_reduced)
 
     ground_states = H_reduced.X_states
     excited_states = H_reduced.B_states
@@ -423,12 +409,8 @@ def generate_OBE_system_transitions(
         H_symbolic, QN_compact = generate_total_symbolic_hamiltonian(
             QN, H_int, couplings, transition_selectors, qn_compact=qn_compact  # type: ignore
         )
-        indices_compact = [np.argmax(qn.state_vector(QN)) for qn in QN_compact]
-        indices_compact = [
-            idc for idc in np.arange(len(QN), dtype=int) if idc not in indices_compact
-        ]
         couplings_compact = [
-            compact_coupling_field(coupling, indices_compact) for coupling in couplings
+            compact_coupling_field(coupling, QN, qn_compact) for coupling in couplings
         ]
     else:
         H_symbolic = generate_total_symbolic_hamiltonian(

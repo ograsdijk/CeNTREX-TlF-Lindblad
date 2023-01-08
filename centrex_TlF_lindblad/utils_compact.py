@@ -1,8 +1,12 @@
+from typing import List
+
+import centrex_tlf_couplings as couplings
 import numpy as np
 import numpy.typing as npt
 import sympy as smp
+from centrex_tlf_hamiltonian import hamiltonian, states
 
-__all__ = ["compact_symbolic_hamiltonian_indices"]
+__all__ = ["compact_symbolic_hamiltonian_indices", "generate_qn_compact"]
 
 
 def compact_symbolic_hamiltonian_indices(
@@ -50,3 +54,23 @@ def compact_symbolic_hamiltonian_indices(
     # far enough away from the others
     arr[idx - deleted, idx - deleted] = np.mean(diagonal)
     return arr
+
+
+def generate_qn_compact(
+    transitions: List[couplings.TransitionSelector],
+    H_reduced: hamiltonian.reduced_hamiltonian.ReducedHamiltonian,
+):
+    J_transitions_ground = []
+    for transition in transitions:
+        J_transitions_ground.append(transition.J_ground)
+    J_compact = [
+        Ji
+        for Ji in np.unique([s.largest.J for s in H_reduced.X_states_basis])  # type: ignore
+        if Ji not in J_transitions_ground
+    ]
+    qn_compact = [
+        states.QuantumSelector(J=Ji, electronic=states.ElectronicState.X)
+        for Ji in J_compact
+    ]
+
+    return qn_compact
