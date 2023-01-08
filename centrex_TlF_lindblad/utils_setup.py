@@ -81,9 +81,22 @@ class OBESystem:
         return f"OBESystem(ground=[{ground_str}], excited=[{excited_str}])"
 
 
+def check_transitions_allowed(
+    transition_selectors: Sequence[couplings_TlF.TransitionSelector],
+) -> None:
+    for transition_selector in transition_selectors:
+        if transition_selector.ground_main is not None:
+            couplings_TlF.utils.assert_transition_coupled_allowed(
+                transition_selector.ground_main,
+                transition_selector.excited_main,
+                ΔmF_allowed=0 if transition_selector.polarizations[0][2] != 0 else 1,
+            )
+    return
+
+
 def generate_OBE_system(
     system_parameters: SystemParameters,
-    transitions: Sequence[couplings_TlF.TransitionSelector],
+    transition_selectors: Sequence[couplings_TlF.TransitionSelector],
     qn_compact: Optional[
         Union[states.QuantumSelector, Sequence[states.QuantumSelector]]
     ] = None,
@@ -111,8 +124,8 @@ def generate_OBE_system(
     Args:
         system_parameters (SystemParameters): dataclass holding system parameters
 
-        transitions (list): list of TransitionSelectors defining the transitions
-                            used in the OBE system.
+        transition_selectors (list): list of TransitionSelectors defining the
+                                    transitions used in the OBE system.
         qn_compact (QuantumSelector): dataclass specifying a subset of states to
                                         select based on the quantum numbers
         decay_channels (DecayChannel): dataclass specifying the decay channel to
@@ -126,6 +139,10 @@ def generate_OBE_system(
     """
     assert system_parameters.X is not None, "Specify included X states"
     assert system_parameters.B is not None, "Specify included B states"
+
+    # check if transitions are allowed before generating the hamiltonian
+    check_transitions_allowed(transition_selectors=transition_selectors)
+
     QN_X_original = list(states.generate_coupled_states_X(system_parameters.X))
     QN_B_original = list(states.generate_coupled_states_B(system_parameters.B))
     QN_original = QN_X_original + QN_B_original
@@ -166,7 +183,7 @@ def generate_OBE_system(
             "Generating the couplings corresponding to the transitions"
         )
     couplings = []
-    for transition in transitions:
+    for transition in transition_selectors:
         if transition.ground_main is not None and transition.excited_main is not None:
             couplings.append(
                 couplings_TlF.generate_coupling_field(
@@ -200,14 +217,14 @@ def generate_OBE_system(
         logger.info("generate_OBE_system: 3/6 -> Generating the symbolic Hamiltonian")
     if qn_compact is not None:
         H_symbolic, QN_compact = generate_total_symbolic_hamiltonian(
-            QN, H_int, couplings, transitions, qn_compact=qn_compact
+            QN, H_int, couplings, transition_selectors, qn_compact=qn_compact
         )
         couplings_compact = [
             compact_coupling_field(coupling, QN, qn_compact) for coupling in couplings
         ]
     else:
         H_symbolic = generate_total_symbolic_hamiltonian(
-            QN, H_int, couplings, transitions
+            QN, H_int, couplings, transition_selectors
         )
 
     if verbose:
@@ -326,9 +343,12 @@ def generate_OBE_system_transitions(
                     ground, exxcited, QN, H_int, V_ref_int, couplings, H_symbolic,
                     C_array, system, code_lines
     """
-
     rtol = None
     stol = 1e-3
+
+    # check if transitions are allowed before generating the hamiltonian
+    check_transitions_allowed(transition_selectors=transition_selectors)
+
     if verbose:
         logging.basicConfig(level=logging.INFO)
         logger = logging.getLogger(__name__)

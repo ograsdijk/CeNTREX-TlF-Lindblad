@@ -57,7 +57,7 @@ def test_generate_OBE_system():
     ]
     obe_system = lindblad.generate_OBE_system(
         system_parameters=syspars,
-        transitions=transitions,
+        transition_selectors=transitions,
         verbose=True,
         qn_compact=states.QuantumSelector(J=3, electronic=states.ElectronicState.X),
         decay_channels=decay_channels,
