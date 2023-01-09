@@ -84,6 +84,16 @@ class OBESystem:
 def check_transitions_allowed(
     transition_selectors: Sequence[couplings_TlF.TransitionSelector],
 ) -> None:
+    """
+    Check if a sequence of TransitionSelectors are all allowed transitions
+
+    Args:
+        transition_selectors (Sequence[couplings_TlF.TransitionSelector]): Sequence of
+        TransitionSelectors a set of transitions.
+
+    Raises:
+        AssertionError: error if any given transition is not allowed.
+    """
     for transition_selector in transition_selectors:
         if transition_selector.ground_main is not None:
             try:
