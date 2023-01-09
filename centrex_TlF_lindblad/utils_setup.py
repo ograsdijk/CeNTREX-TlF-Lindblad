@@ -86,11 +86,20 @@ def check_transitions_allowed(
 ) -> None:
     for transition_selector in transition_selectors:
         if transition_selector.ground_main is not None:
-            couplings_TlF.utils.assert_transition_coupled_allowed(
-                transition_selector.ground_main,
-                transition_selector.excited_main,
-                ΔmF_allowed=0 if transition_selector.polarizations[0][2] != 0 else 1,
-            )
+            try:
+                couplings_TlF.utils.assert_transition_coupled_allowed(
+                    transition_selector.ground_main.largest,
+                    transition_selector.excited_main.largest,
+                    ΔmF_allowed=0
+                    if transition_selector.polarizations[0][2] != 0
+                    else 1,
+                )
+            except AssertionError as err:
+                raise AssertionError(
+                    f"{transition_selector.description} with polarization "
+                    f"{np.round(transition_selector.polarizations[0], 2)} => "
+                    f"{err.args[0]}"
+                )
     return
 
 
