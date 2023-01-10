@@ -25,10 +25,14 @@ def add_levels_symbolic_hamiltonian(
     excited_states: Sequence[states.State],
 ) -> Tuple[List[int], smp.matrices.dense.MutableDenseMatrix]:
     arr = hamiltonian.copy()
-    indices = [i + len(QN) - len(excited_states) for i in range(len(decay_channels))]
+    indices = get_insert_level_indices(decay_channels, QN, excited_states)
     for idx in indices:
         arr = add_level_symbolic_hamiltonian(arr, idx)
     return indices, arr
+
+def get_insert_level_indices(decay_channels: Sequence[DecayChannel], QN: Sequence[states.State], excited_states: Sequence[states.State]):
+    indices = [i + len(QN) - len(excited_states) for i in range(len(decay_channels))]
+    return indices
 
 
 def add_level_symbolic_hamiltonian(

@@ -58,14 +58,14 @@ def compact_symbolic_hamiltonian_indices(
 
 def generate_qn_compact(
     transitions: List[couplings.TransitionSelector],
-    H_reduced: hamiltonian.reduced_hamiltonian.ReducedHamiltonian,
+    H_reduced: hamiltonian.reduced_hamiltonian.ReducedHamiltonianTotal,
 ):
     J_transitions_ground = []
     for transition in transitions:
         J_transitions_ground.append(transition.J_ground)
     J_compact = [
         Ji
-        for Ji in np.unique([s.largest.J for s in H_reduced.X_states_basis])  # type: ignore
+        for Ji in np.unique([s.J for s in H_reduced.X_states_basis])  # type: ignore
         if Ji not in J_transitions_ground
     ]
     qn_compact = [
