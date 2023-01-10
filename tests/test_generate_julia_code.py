@@ -1,12 +1,13 @@
-from pathlib import Path
 import pickle
+from pathlib import Path
 
 import centrex_tlf_couplings as couplings
-import centrex_tlf_lindblad as lindblad
 import numpy as np
 import pytest
 import sympy as smp
 from centrex_tlf_hamiltonian import hamiltonian, states
+
+import centrex_tlf_lindblad as lindblad
 
 
 def test_generate_preamble():

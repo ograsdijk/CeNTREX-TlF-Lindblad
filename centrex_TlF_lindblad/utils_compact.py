@@ -1,10 +1,10 @@
-from typing import List
+from typing import List, Union
 
 import centrex_tlf_couplings as couplings
 import numpy as np
 import numpy.typing as npt
 import sympy as smp
-from centrex_tlf_hamiltonian import hamiltonian, states
+from centrex_tlf_hamiltonian import hamiltonian, states, transitions
 
 __all__ = ["compact_symbolic_hamiltonian_indices", "generate_qn_compact"]
 
@@ -57,7 +57,9 @@ def compact_symbolic_hamiltonian_indices(
 
 
 def generate_qn_compact(
-    transitions: List[couplings.TransitionSelector],
+    transitions: List[
+        Union[transitions.OpticalTransition, transitions.MicrowaveTransition]
+    ],
     H_reduced: hamiltonian.reduced_hamiltonian.ReducedHamiltonianTotal,
 ):
     J_transitions_ground = []

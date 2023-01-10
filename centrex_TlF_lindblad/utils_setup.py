@@ -136,6 +136,7 @@ def generate_OBE_system(
     H_func_B: Optional[Callable] = None,
     verbose: bool = False,
     normalize_pol: bool = False,
+    Γ: float = hamiltonian.Γ,
 ) -> OBESystem:
     """Convenience function for generating the symbolic OBE system of equations
     and Julia code.
