@@ -1,7 +1,8 @@
-from typing import Any, Optional, Union, List
 from dataclasses import dataclass
-import sympy as smp
+from typing import Any, List, Optional, Union
+
 import numpy.typing as npt
+import sympy as smp
 from centrex_tlf_hamiltonian import states
 
 __all__ = ["generate_density_matrix_symbolic", "SystemParameters"]
@@ -26,18 +27,18 @@ def generate_density_matrix_symbolic(
             # \u03C1 is unicode for ρ,
             if i == j:
                 ρ[i, j] = smp.Symbol(
-                    u"\u03C1{0},{1}".format(
+                    "\u03C1{0},{1}".format(
                         recursive_subscript(i), recursive_subscript(j)
                     )
                 )
             else:
                 ρ[i, j] = smp.Symbol(
-                    u"\u03C1{0},{1}".format(
+                    "\u03C1{0},{1}".format(
                         recursive_subscript(i), recursive_subscript(j)
                     )
                 )
                 ρ[j, i] = smp.Symbol(
-                    u"\u03C1{1},{0}".format(
+                    "\u03C1{1},{0}".format(
                         recursive_subscript(i), recursive_subscript(j)
                     )
                 )

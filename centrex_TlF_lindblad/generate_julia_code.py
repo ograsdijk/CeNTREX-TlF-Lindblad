@@ -1,12 +1,11 @@
 from collections import OrderedDict
-from typing import Any, List, Sequence
-
-import sympy as smp
-
-from .utils import generate_density_matrix_symbolic
-from .ode_parameters import odeParameters
+from typing import List, Sequence
 
 import centrex_tlf_couplings as couplings
+import sympy as smp
+
+from .ode_parameters import odeParameters
+from .utils import generate_density_matrix_symbolic
 
 __all__ = ["system_of_equations_to_lines", "generate_preamble"]
 
@@ -69,6 +68,7 @@ def system_of_equations_to_lines(
                         cline = cline.replace(_ + "\n", f"ρ[{i+1},{j+1}]")
                         cline = cline.replace(_ + ")", f"ρ[{i+1},{j+1}])")
                 cline = cline.strip()
+                # replace ρ[i,j] with conj(ρ[j,i])
                 for i in range(n_states):
                     for j in range(0, i):
                         cline = cline.replace(
@@ -76,10 +76,4 @@ def system_of_equations_to_lines(
                         )
 
                 code_lines.append(cline)
-    # # lower triangle is the complex conjugate of the upper triangle
-    # for idx in range(n_states):
-    #     for idy in range(0, idx):
-    #         if system[idx, idy] != 0:
-    #             cline = f"du[{idx+1},{idy+1}] = conj(du[{idy+1},{idx+1}])"
-    #             code_lines.append(cline)
     return code_lines

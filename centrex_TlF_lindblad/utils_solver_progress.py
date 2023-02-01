@@ -1,7 +1,5 @@
-from typing import Optional, Union, List
-import numpy as np
-import numpy.typing as npt
 from julia import Main
+
 from .utils_solver import OBEEnsembleProblem, OBEEnsembleProblemConfig
 
 __all__ = ["solve_problem_parameter_scan_progress"]

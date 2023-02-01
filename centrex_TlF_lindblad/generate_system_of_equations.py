@@ -1,7 +1,9 @@
 from typing import Literal, Tuple, Union, overload
+
 import numpy as np
 import numpy.typing as npt
 import sympy as smp
+
 from .utils import generate_density_matrix_symbolic
 
 __all__ = ["generate_system_of_equations_symbolic"]
@@ -16,6 +18,7 @@ def generate_system_of_equations_symbolic(
 ) -> smp.matrices.dense.MutableDenseMatrix:
     ...
 
+
 @overload
 def generate_system_of_equations_symbolic(
     hamiltonian: smp.matrices.dense.MutableDenseMatrix,
@@ -23,6 +26,7 @@ def generate_system_of_equations_symbolic(
     fast: bool,
 ) -> smp.matrices.dense.MutableDenseMatrix:
     ...
+
 
 @overload
 def generate_system_of_equations_symbolic(

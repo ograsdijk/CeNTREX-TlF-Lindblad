@@ -1,6 +1,6 @@
 import copy
 from dataclasses import dataclass
-from typing import Any, Dict, Sequence, List, Tuple, Union
+from typing import Dict, List, Sequence, Tuple
 
 import numpy as np
 import numpy.typing as npt
@@ -30,7 +30,12 @@ def add_levels_symbolic_hamiltonian(
         arr = add_level_symbolic_hamiltonian(arr, idx)
     return indices, arr
 
-def get_insert_level_indices(decay_channels: Sequence[DecayChannel], QN: Sequence[states.State], excited_states: Sequence[states.State]):
+
+def get_insert_level_indices(
+    decay_channels: Sequence[DecayChannel],
+    QN: Sequence[states.State],
+    excited_states: Sequence[states.State],
+):
     indices = [i + len(QN) - len(excited_states) for i in range(len(decay_channels))]
     return indices
 
@@ -74,7 +79,7 @@ def add_decays_C_arrays(
     # converting the C arrays to branching ratio arrays and adding the new
     # levels
     BR = add_levels_C_array(C_array, indices)
-    BR = BR ** 2 / Γ
+    BR = BR**2 / Γ
 
     # getting the excited state indices
     indices_excited = [

@@ -1,6 +1,5 @@
 from typing import List, Union
 
-import centrex_tlf_couplings as couplings
 import numpy as np
 import numpy.typing as npt
 import sympy as smp
@@ -26,7 +25,7 @@ def compact_symbolic_hamiltonian_indices(
     arr = hamiltonian.copy()
     diagonal = arr.diagonal()
     diagonal = [diagonal[idd] for idd in indices_compact]
-    free_symbols = np.unique([val.free_symbols for val in diagonal])
+    # free_symbols = np.unique([val.free_symbols for val in diagonal])
     check_free_symbols = np.sum([len(val.free_symbols) for val in diagonal])
     assert (
         check_free_symbols == 0

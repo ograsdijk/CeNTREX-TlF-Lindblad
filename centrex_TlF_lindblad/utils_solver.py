@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from numbers import Number
-from typing import List, Literal, Optional, Sequence, Tuple, Union, overload
+from typing import List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import numpy.typing as npt

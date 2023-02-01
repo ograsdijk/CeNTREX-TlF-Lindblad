@@ -1,7 +1,7 @@
-from typing import List
 from pathlib import Path
-from julia import Main
+from typing import List
 
+from julia import Main
 
 __all__ = ["initialize_julia", "generate_ode_fun_julia"]
 

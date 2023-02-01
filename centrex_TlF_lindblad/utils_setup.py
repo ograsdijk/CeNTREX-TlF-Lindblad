@@ -21,8 +21,8 @@ from .generate_julia_code import generate_preamble, system_of_equations_to_lines
 from .generate_system_of_equations import generate_system_of_equations_symbolic
 from .ode_parameters import odeParameters
 from .utils import SystemParameters
-from .utils_julia import generate_ode_fun_julia, initialize_julia
 from .utils_compact import generate_qn_compact
+from .utils_julia import generate_ode_fun_julia, initialize_julia
 
 __all__ = [
     "generate_OBE_system",
@@ -405,7 +405,7 @@ def generate_OBE_system_transitions(
     if H_reduced.QN_basis is None:
         raise TypeError("H_reduced.QN_basis is None")
 
-    if qn_compact == True:
+    if qn_compact is True:
         qn_compact = generate_qn_compact(transitions, H_reduced)
 
     ground_states = H_reduced.X_states
@@ -748,14 +748,13 @@ def setup_OBE_system_julia_transitions(
         obe_system.preamble = generate_preamble(ode_parameters, transition_selectors)
         if verbose:
             logger.info(
-                "setup_OBE_system_julia: 2/3 -> Initializing Julia on "
-                f"{_n_procs} cores"
+                f"setup_OBE_system_julia: 2/3 -> Initializing Julia on {_n_procs} cores"
             )
         initialize_julia(nprocs=_n_procs, verbose=verbose)
         if verbose:
             logger.info(
-                "setup_OBE_system_julia: 3/3 -> Defining the ODE equation and parameters in"
-                " Julia"
+                "setup_OBE_system_julia: 3/3 -> Defining the ODE equation and"
+                " parameters in Julia"
             )
             logging.basicConfig(level=logging.WARNING)
         generate_ode_fun_julia(obe_system.preamble, obe_system.code_lines)

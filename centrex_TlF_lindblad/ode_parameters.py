@@ -1,6 +1,7 @@
+from typing import List
+
 import julia
 import numpy as np
-import numpy.typing as npt
 import sympy as smp
 from centrex_tlf_couplings import TransitionSelector
 from centrex_tlf_hamiltonian import hamiltonian
@@ -355,7 +356,7 @@ class odeParameters:
 
 
 def generate_ode_parameters(
-    transition_selectors: TransitionSelector, **kwargs
+    transition_selectors: List[TransitionSelector], **kwargs
 ) -> odeParameters:
     parameters = []
     for idt, ts in enumerate(transition_selectors):
